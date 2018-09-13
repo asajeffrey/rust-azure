@@ -6,10 +6,17 @@ extern crate cmake;
 use std::env;
 
 fn main() {
-    let dst = cmake::Config::new(".").build();
+    let target = env::var("TARGET").unwrap();
+
+    let mut cmake = cmake::Config::new(".");
+    // Cross-compiling for android needs the target OS set to Linux.
+    if target.contains("android") {
+        cmake.define("CMAKE_SYSTEM_NAME", "Linux");
+    }
+    let dst = cmake.build();
+
     println!("cargo:rustc-link-search=native={}/lib", dst.display());
 
-    let target = env::var("TARGET").unwrap();
     if target.contains("windows") {
         println!("cargo:rustc-link-lib=static=azure");
         println!("cargo:rustc-link-lib=uuid");
